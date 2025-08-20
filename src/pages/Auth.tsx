@@ -14,14 +14,14 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
+
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Redirect if already signed in
   useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
+    if (user) navigate('/');
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -29,7 +29,6 @@ const Auth = () => {
     setLoading(true);
 
     const { error } = await signIn(email, password);
-
     if (error) {
       toast({
         title: "Sign in failed",
@@ -51,7 +50,6 @@ const Auth = () => {
     setLoading(true);
 
     const { error } = await signUp(email, password, displayName);
-
     if (error) {
       toast({
         title: "Sign up failed",
@@ -67,6 +65,43 @@ const Auth = () => {
 
     setLoading(false);
   };
+
+  // Small helper for input fields to avoid duplication
+  const InputField = ({
+    id,
+    type,
+    value,
+    onChange,
+    placeholder,
+    label,
+    Icon,
+    required = true,
+  }: {
+    id: string;
+    type: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder: string;
+    label: string;
+    Icon: React.ElementType;
+    required?: boolean;
+  }) => (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="flex items-center space-x-2">
+        <Icon className="w-4 h-4" />
+        <span>{label}</span>
+      </Label>
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        className="neon-input"
+      />
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -90,39 +125,27 @@ const Auth = () => {
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
 
+            {/* Sign In */}
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center space-x-2">
-                    <Mail className="w-4 h-4" />
-                    <span>Email</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    required
-                    className="neon-input"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="flex items-center space-x-2">
-                    <Lock className="w-4 h-4" />
-                    <span>Password</span>
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="neon-input"
-                  />
-                </div>
+                <InputField
+                  id="signin-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  label="Email"
+                  Icon={Mail}
+                />
+                <InputField
+                  id="signin-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  label="Password"
+                  Icon={Lock}
+                />
 
                 <Button
                   type="submit"
@@ -136,54 +159,37 @@ const Auth = () => {
               </form>
             </TabsContent>
 
+            {/* Sign Up */}
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="displayName" className="flex items-center space-x-2">
-                    <User className="w-4 h-4" />
-                    <span>Display Name</span>
-                  </Label>
-                  <Input
-                    id="displayName"
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Your name"
-                    className="neon-input"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="flex items-center space-x-2">
-                    <Mail className="w-4 h-4" />
-                    <span>Email</span>
-                  </Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    required
-                    className="neon-input"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="flex items-center space-x-2">
-                    <Lock className="w-4 h-4" />
-                    <span>Password</span>
-                  </Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="neon-input"
-                  />
-                </div>
+                <InputField
+                  id="signup-displayName"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name"
+                  label="Display Name"
+                  Icon={User}
+                  required={false}
+                />
+                <InputField
+                  id="signup-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  label="Email"
+                  Icon={Mail}
+                />
+                <InputField
+                  id="signup-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  label="Password"
+                  Icon={Lock}
+                />
 
                 <Button
                   type="submit"
@@ -198,6 +204,7 @@ const Auth = () => {
             </TabsContent>
           </Tabs>
 
+          {/* Guest Option */}
           <div className="mt-6 text-center">
             <Button
               variant="ghost"
