@@ -61,7 +61,28 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				neon: {
+					cyan: 'hsl(var(--neon-cyan))',
+					pink: 'hsl(var(--neon-pink))',
+					purple: 'hsl(var(--neon-purple))',
+					green: 'hsl(var(--neon-green))',
+					orange: 'hsl(var(--neon-orange))'
 				}
+			},
+			backgroundImage: {
+				'gradient-neon': 'var(--gradient-neon)',
+				'gradient-cyber': 'var(--gradient-cyber)',
+				'gradient-speed': 'var(--gradient-speed)'
+			},
+			boxShadow: {
+				'neon': 'var(--glow-cyan)',
+				'neon-pink': 'var(--glow-pink)',
+				'neon-intense': 'var(--glow-intense)'
+			},
+			animation: {
+				'pulse-neon': 'pulse-neon 2s ease-in-out infinite alternate',
+				'spin-slow': 'spin-slow 3s linear infinite'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
