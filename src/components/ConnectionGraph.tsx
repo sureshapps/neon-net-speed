@@ -1,170 +1,113 @@
+// components/SpeedTestDashboard.tsx
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { NetworkStats } from './NetworkStats';
+import { ConnectionGraph } from './ConnectionGraph';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Download, Upload } from 'lucide-react';
 
-interface ConnectionGraphProps {
-  downloadSpeed: number;
-  uploadSpeed: number;
-  isRunning: boolean;
-}
-
-export const ConnectionGraph: React.FC<ConnectionGraphProps> = ({ 
-  downloadSpeed, 
-  uploadSpeed, 
-  isRunning 
-}) => {
-  const [dataPoints, setDataPoints] = useState<{ download: number; upload: number; time: number }[]>([]);
-  const [viewMode, setViewMode] = useState<'both' | 'download' | 'upload'>('both');
+// Utility to fetch ISP, IP, Location & Connection type
+const useNetworkInfo = () => {
+  const [networkInfo, setNetworkInfo] = useState({
+    ip: '',
+    isp: '',
+    city: '',
+    country: '',
+    connection: ''
+  });
 
   useEffect(() => {
-    if (isRunning) {
-      const interval = setInterval(() => {
-        setDataPoints(prev => {
-          const newPoint = {
-            download: downloadSpeed,
-            upload: uploadSpeed,
-            time: Date.now()
-          };
-          
-          // Keep only last 50 data points
-          const updated = [...prev, newPoint].slice(-50);
-          return updated;
+    const fetchInfo = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+
+        const conn =
+          (navigator as any).connection?.effectiveType ||
+          (navigator as any).connection?.type ||
+          'Unknown';
+
+        setNetworkInfo({
+          ip: data.ip || '—',
+          isp: data.org || '—',
+          city: data.city || '—',
+          country: data.country_name || '—',
+          connection: conn
         });
-      }, 200);
+      } catch (err) {
+        console.error('Failed to fetch network info', err);
+      }
+    };
 
-      return () => clearInterval(interval);
+    fetchInfo();
+  }, []);
+
+  return networkInfo;
+};
+
+export const SpeedTestDashboard: React.FC = () => {
+  // Speed test values
+  const [ping, setPing] = useState(0);
+  const [jitter, setJitter] = useState(0);
+  const [downloadSpeed, setDownloadSpeed] = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+
+  // Network info
+  const { ip, isp, city, country, connection } = useNetworkInfo();
+
+  const toggleTest = () => {
+    if (isRunning) {
+      setIsRunning(false);
+      return;
     }
-  }, [isRunning, downloadSpeed, uploadSpeed]);
 
-  const maxSpeed = Math.max(
-    ...dataPoints.map(d => Math.max(d.download, d.upload)),
-    100
-  );
+    setIsRunning(true);
+
+    // Example: simulate values (replace with real test later)
+    const interval = setInterval(() => {
+      setPing(Math.random() * 80);
+      setJitter(Math.random() * 15);
+      setDownloadSpeed(Math.random() * 300);
+      setUploadSpeed(Math.random() * 100);
+    }, 800);
+
+    // Stop after 20s
+    setTimeout(() => {
+      clearInterval(interval);
+      setIsRunning(false);
+    }, 20000);
+  };
 
   return (
-    <Card className="p-6 bg-card/50 border-muted">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          <TrendingUp className="w-5 h-5 text-neon-cyan" />
-          <h3 className="text-lg font-semibold text-neon-cyan">Real-time Connection Graph</h3>
-        </div>
-        
-        <div className="flex space-x-2">
-          <Button
-            variant={viewMode === 'both' ? 'neon' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('both')}
-          >
-            Both
-          </Button>
-          <Button
-            variant={viewMode === 'download' ? 'neon' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('download')}
-            className="text-neon-green hover:text-neon-green"
-          >
-            <Download className="w-4 h-4 mr-1" />
-            Down
-          </Button>
-          <Button
-            variant={viewMode === 'upload' ? 'neon' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('upload')}
-            className="text-neon-pink hover:text-neon-pink"
-          >
-            <Upload className="w-4 h-4 mr-1" />
-            Up
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Start/Stop Button */}
+      <div className="flex justify-center">
+        <Button
+          onClick={toggleTest}
+          variant={isRunning ? 'destructive' : 'neon'}
+        >
+          {isRunning ? 'Stop Test' : 'Start Test'}
+        </Button>
       </div>
 
-      <div className="relative h-64 bg-background/50 rounded-lg border border-muted p-4">
-        {dataPoints.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Start a speed test to see real-time data
-          </div>
-        ) : (
-          <svg className="w-full h-full" viewBox="0 0 400 200">
-            {/* Grid lines */}
-            {[0, 25, 50, 75, 100].map(y => (
-              <line
-                key={y}
-                x1="0"
-                y1={200 - y * 2}
-                x2="400"
-                y2={200 - y * 2}
-                stroke="hsl(var(--muted))"
-                strokeWidth="0.5"
-                opacity="0.3"
-              />
-            ))}
+      {/* Stats Panel */}
+      <NetworkStats
+        ping={ping}
+        jitter={jitter}
+        downloadSpeed={downloadSpeed}
+        uploadSpeed={uploadSpeed}
+        isp={isp}
+        ip={ip}
+        city={city}
+        country={country}
+        connection={connection}
+      />
 
-            {/* Download line */}
-            {(viewMode === 'both' || viewMode === 'download') && (
-              <polyline
-                points={dataPoints
-                  .map((point, index) => {
-                    const x = (index / (dataPoints.length - 1)) * 400;
-                    const y = 200 - (point.download / maxSpeed) * 200;
-                    return `${x},${y}`;
-                  })
-                  .join(' ')}
-                fill="none"
-                stroke="hsl(var(--neon-green))"
-                strokeWidth="2"
-                style={{
-                  filter: 'drop-shadow(0 0 4px hsl(var(--neon-green)))'
-                }}
-              />
-            )}
-
-            {/* Upload line */}
-            {(viewMode === 'both' || viewMode === 'upload') && (
-              <polyline
-                points={dataPoints
-                  .map((point, index) => {
-                    const x = (index / (dataPoints.length - 1)) * 400;
-                    const y = 200 - (point.upload / maxSpeed) * 200;
-                    return `${x},${y}`;
-                  })
-                  .join(' ')}
-                fill="none"
-                stroke="hsl(var(--neon-pink))"
-                strokeWidth="2"
-                style={{
-                  filter: 'drop-shadow(0 0 4px hsl(var(--neon-pink)))'
-                }}
-              />
-            )}
-          </svg>
-        )}
-
-        {/* Speed scale */}
-        <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-muted-foreground py-2">
-          <span>{maxSpeed.toFixed(0)}</span>
-          <span>{(maxSpeed * 0.75).toFixed(0)}</span>
-          <span>{(maxSpeed * 0.5).toFixed(0)}</span>
-          <span>{(maxSpeed * 0.25).toFixed(0)}</span>
-          <span>0 Mbps</span>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center justify-center space-x-6 mt-4">
-        {(viewMode === 'both' || viewMode === 'download') && (
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-0.5 bg-neon-green shadow-neon"></div>
-            <span className="text-sm text-neon-green">Download</span>
-          </div>
-        )}
-        {(viewMode === 'both' || viewMode === 'upload') && (
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-0.5 bg-neon-pink shadow-neon-pink"></div>
-            <span className="text-sm text-neon-pink">Upload</span>
-          </div>
-        )}
-      </div>
-    </Card>
+      {/* Live Graph */}
+      <ConnectionGraph
+        downloadSpeed={downloadSpeed}
+        uploadSpeed={uploadSpeed}
+        isRunning={isRunning}
+      />
+    </div>
   );
 };
