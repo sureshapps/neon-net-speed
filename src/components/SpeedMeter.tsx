@@ -18,13 +18,20 @@ export const SpeedMeter: React.FC<SpeedMeterProps> = ({
   const currentSpeed = phase === 'download' ? downloadSpeed : phase === 'upload' ? uploadSpeed : 0;
   const speedPercentage = Math.min((currentSpeed / maxSpeed) * 100, 100);
 
+  const activeColor =
+    phase === 'download'
+      ? 'hsl(var(--neon-green))'
+      : phase === 'upload'
+      ? 'hsl(var(--neon-pink))'
+      : 'hsl(var(--neon-cyan))';
+
   return (
     <Card className="neon-border p-8 bg-card/80 backdrop-blur-sm">
       <div className="relative">
         {/* Speedometer Circle */}
-        <div className="relative w-80 h-80 mx-auto">
+        <div className="relative w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 mx-auto">
           {/* Background Circle */}
-          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
             <circle
               cx="50"
               cy="50"
@@ -41,21 +48,13 @@ export const SpeedMeter: React.FC<SpeedMeterProps> = ({
               cy="50"
               r="45"
               fill="none"
-              stroke={
-                phase === 'download' ? 'hsl(var(--neon-green))' : 
-                phase === 'upload' ? 'hsl(var(--neon-pink))' : 
-                'hsl(var(--neon-cyan))'
-              }
+              stroke={activeColor}
               strokeWidth="4"
               strokeLinecap="round"
               strokeDasharray={`${speedPercentage * 2.83} 283`}
-              className="transition-all duration-300"
+              className="transition-[stroke-dasharray] duration-500 ease-out"
               style={{
-                filter: `drop-shadow(0 0 10px ${
-                  phase === 'download' ? 'hsl(var(--neon-green))' : 
-                  phase === 'upload' ? 'hsl(var(--neon-pink))' : 
-                  'hsl(var(--neon-cyan))'
-                })`
+                filter: `drop-shadow(0 0 ${Math.min(20, currentSpeed / 10)}px ${activeColor})`
               }}
             />
           </svg>
@@ -63,23 +62,42 @@ export const SpeedMeter: React.FC<SpeedMeterProps> = ({
           {/* Center Content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="text-center space-y-2">
-              <div className={`text-6xl font-bold transition-colors duration-300 ${
-                phase === 'download' ? 'text-neon-green' : 
-                phase === 'upload' ? 'text-neon-pink' : 
-                'text-neon-cyan'
-              }`}>
+              <div
+                className={`text-6xl font-bold transition-colors duration-300 ${
+                  phase === 'download'
+                    ? 'text-neon-green'
+                    : phase === 'upload'
+                    ? 'text-neon-pink'
+                    : 'text-neon-cyan'
+                }`}
+                role="status"
+                aria-live="polite"
+                aria-label={`Current speed ${currentSpeed.toFixed(1)} megabits per second`}
+              >
                 {currentSpeed.toFixed(1)}
               </div>
               <div className="text-lg text-muted-foreground">Mbps</div>
-              {isRunning && (
-                <div className={`text-sm uppercase tracking-wider ${
-                  phase === 'download' ? 'text-neon-green' : 
-                  phase === 'upload' ? 'text-neon-pink' : 
-                  'text-neon-cyan'
-                }`}>
-                  {phase === 'ping' ? 'Testing Latency' :
-                   phase === 'download' ? 'Download Test' :
-                   phase === 'upload' ? 'Upload Test' : 'Initializing'}
+              {isRunning ? (
+                <div
+                  className={`text-sm uppercase tracking-wider ${
+                    phase === 'download'
+                      ? 'text-neon-green'
+                      : phase === 'upload'
+                      ? 'text-neon-pink'
+                      : 'text-neon-cyan'
+                  }`}
+                >
+                  {phase === 'ping'
+                    ? 'Testing Latency'
+                    : phase === 'download'
+                    ? 'Download Test'
+                    : phase === 'upload'
+                    ? 'Upload Test'
+                    : 'Initializing'}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground uppercase tracking-wider">
+                  Ready
                 </div>
               )}
             </div>
@@ -102,28 +120,40 @@ export const SpeedMeter: React.FC<SpeedMeterProps> = ({
 
         {/* Current Phase Indicator */}
         <div className="mt-6 flex justify-center space-x-8">
-          <div className={`flex items-center space-x-2 transition-colors ${
-            phase === 'ping' ? 'text-neon-cyan' : 'text-muted-foreground'
-          }`}>
-            <div className={`w-3 h-3 rounded-full ${
-              phase === 'ping' ? 'bg-neon-cyan shadow-neon' : 'bg-muted'
-            }`}></div>
+          <div
+            className={`flex items-center space-x-2 transition-colors ${
+              phase === 'ping' ? 'text-neon-cyan' : 'text-muted-foreground'
+            }`}
+          >
+            <div
+              className={`w-3 h-3 rounded-full ${
+                phase === 'ping' ? 'bg-neon-cyan shadow-neon' : 'bg-muted'
+              }`}
+            ></div>
             <span className="text-sm">Ping</span>
           </div>
-          <div className={`flex items-center space-x-2 transition-colors ${
-            phase === 'download' ? 'text-neon-green' : 'text-muted-foreground'
-          }`}>
-            <div className={`w-3 h-3 rounded-full ${
-              phase === 'download' ? 'bg-neon-green shadow-neon' : 'bg-muted'
-            }`}></div>
+          <div
+            className={`flex items-center space-x-2 transition-colors ${
+              phase === 'download' ? 'text-neon-green' : 'text-muted-foreground'
+            }`}
+          >
+            <div
+              className={`w-3 h-3 rounded-full ${
+                phase === 'download' ? 'bg-neon-green shadow-neon' : 'bg-muted'
+              }`}
+            ></div>
             <span className="text-sm">Download</span>
           </div>
-          <div className={`flex items-center space-x-2 transition-colors ${
-            phase === 'upload' ? 'text-neon-pink' : 'text-muted-foreground'
-          }`}>
-            <div className={`w-3 h-3 rounded-full ${
-              phase === 'upload' ? 'bg-neon-pink shadow-neon-pink' : 'bg-muted'
-            }`}></div>
+          <div
+            className={`flex items-center space-x-2 transition-colors ${
+              phase === 'upload' ? 'text-neon-pink' : 'text-muted-foreground'
+            }`}
+          >
+            <div
+              className={`w-3 h-3 rounded-full ${
+                phase === 'upload' ? 'bg-neon-pink shadow-neon-pink' : 'bg-muted'
+              }`}
+            ></div>
             <span className="text-sm">Upload</span>
           </div>
         </div>
