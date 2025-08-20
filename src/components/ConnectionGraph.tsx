@@ -1,113 +1,74 @@
-// components/SpeedTestDashboard.tsx
-import React, { useState, useEffect } from 'react';
-import { NetworkStats } from './NetworkStats';
-import { ConnectionGraph } from './ConnectionGraph';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useRef } from 'react';
+import Chart from 'chart.js/auto';
 
-// Utility to fetch ISP, IP, Location & Connection type
-const useNetworkInfo = () => {
-  const [networkInfo, setNetworkInfo] = useState({
-    ip: '',
-    isp: '',
-    city: '',
-    country: '',
-    connection: ''
-  });
+interface ConnectionGraphProps {
+  downloadSpeed: number;
+  uploadSpeed: number;
+  isRunning: boolean;
+}
+
+export const ConnectionGraph: React.FC<ConnectionGraphProps> = ({
+  downloadSpeed,
+  uploadSpeed,
+  isRunning,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const chartRef = useRef<Chart | null>(null);
 
   useEffect(() => {
-    const fetchInfo = async () => {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
+    if (!canvasRef.current) return;
 
-        const conn =
-          (navigator as any).connection?.effectiveType ||
-          (navigator as any).connection?.type ||
-          'Unknown';
-
-        setNetworkInfo({
-          ip: data.ip || '—',
-          isp: data.org || '—',
-          city: data.city || '—',
-          country: data.country_name || '—',
-          connection: conn
-        });
-      } catch (err) {
-        console.error('Failed to fetch network info', err);
-      }
-    };
-
-    fetchInfo();
-  }, []);
-
-  return networkInfo;
-};
-
-export const SpeedTestDashboard: React.FC = () => {
-  // Speed test values
-  const [ping, setPing] = useState(0);
-  const [jitter, setJitter] = useState(0);
-  const [downloadSpeed, setDownloadSpeed] = useState(0);
-  const [uploadSpeed, setUploadSpeed] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-
-  // Network info
-  const { ip, isp, city, country, connection } = useNetworkInfo();
-
-  const toggleTest = () => {
-    if (isRunning) {
-      setIsRunning(false);
-      return;
+    if (!chartRef.current) {
+      chartRef.current = new Chart(canvasRef.current, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Download (Mbps)',
+              borderColor: '#00ffff',
+              backgroundColor: 'rgba(0, 255, 255, 0.2)',
+              data: [],
+            },
+            {
+              label: 'Upload (Mbps)',
+              borderColor: '#ff00ff',
+              backgroundColor: 'rgba(255, 0, 255, 0.2)',
+              data: [],
+            },
+          ],
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          scales: {
+            x: { display: false },
+            y: { beginAtZero: true },
+          },
+        },
+      });
     }
 
-    setIsRunning(true);
+    if (isRunning && chartRef.current) {
+      const chart = chartRef.current;
+      chart.data.labels?.push('');
+      (chart.data.datasets[0].data as number[]).push(downloadSpeed);
+      (chart.data.datasets[1].data as number[]).push(uploadSpeed);
 
-    // Example: simulate values (replace with real test later)
-    const interval = setInterval(() => {
-      setPing(Math.random() * 80);
-      setJitter(Math.random() * 15);
-      setDownloadSpeed(Math.random() * 300);
-      setUploadSpeed(Math.random() * 100);
-    }, 800);
+      if (chart.data.labels.length > 20) {
+        chart.data.labels.shift();
+        (chart.data.datasets[0].data as number[]).shift();
+        (chart.data.datasets[1].data as number[]).shift();
+      }
 
-    // Stop after 20s
-    setTimeout(() => {
-      clearInterval(interval);
-      setIsRunning(false);
-    }, 20000);
-  };
+      chart.update();
+    }
+  }, [downloadSpeed, uploadSpeed, isRunning]);
 
   return (
-    <div className="space-y-6">
-      {/* Start/Stop Button */}
-      <div className="flex justify-center">
-        <Button
-          onClick={toggleTest}
-          variant={isRunning ? 'destructive' : 'neon'}
-        >
-          {isRunning ? 'Stop Test' : 'Start Test'}
-        </Button>
-      </div>
-
-      {/* Stats Panel */}
-      <NetworkStats
-        ping={ping}
-        jitter={jitter}
-        downloadSpeed={downloadSpeed}
-        uploadSpeed={uploadSpeed}
-        isp={isp}
-        ip={ip}
-        city={city}
-        country={country}
-        connection={connection}
-      />
-
-      {/* Live Graph */}
-      <ConnectionGraph
-        downloadSpeed={downloadSpeed}
-        uploadSpeed={uploadSpeed}
-        isRunning={isRunning}
-      />
+    <div className="bg-black/30 p-4 rounded-xl border border-neon-pink/50">
+      <h2 className="text-lg font-semibold text-neon-pink mb-2">Live Speed Graph</h2>
+      <canvas ref={canvasRef} />
     </div>
   );
 };
