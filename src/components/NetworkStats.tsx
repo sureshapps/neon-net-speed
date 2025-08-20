@@ -29,12 +29,17 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
     type: 'Unknown'
   });
 
-  // Detect WiFi vs Mobile/Ethernet (basic heuristic)
-  const getConnectionType = () => {
-    if ((navigator as any)?.connection?.type) {
-      return (navigator as any).connection.type; // Chrome supports
+  // Detect connection type more safely
+  const getConnectionType = (): ConnectionInfo["type"] => {
+    const nav = navigator as any;
+    if (nav?.connection?.effectiveType) {
+      // Normalize Chrome's effectiveType (e.g. "4g", "wifi")
+      const type = nav.connection.effectiveType.toLowerCase();
+      if (type.includes("wifi")) return "WiFi";
+      if (type.includes("cell") || type.includes("3g") || type.includes("4g") || type.includes("5g")) return "Mobile";
     }
-    return navigator.userAgent.includes('Mobile') ? 'Mobile' : 'WiFi';
+    if (navigator.userAgent.includes('Mobile')) return "Mobile";
+    return "WiFi"; // Fallback assumption
   };
 
   useEffect(() => {
@@ -44,10 +49,10 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
         const data = await res.json();
         setInfo({
           ip: data.ip || '—',
-          isp: data.org || 'Auto-detected',
+          isp: data.org || data.isp || 'Unknown',
           location: data.city && data.country_name 
             ? `${data.city}, ${data.country_name}` 
-            : '—',
+            : (data.country_name || '—'),
           type: getConnectionType()
         });
       } catch (err) {
@@ -67,6 +72,9 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
   };
 
   const pingQuality = getPingQuality(ping);
+
+  // Compute ratio safely
+  const speedRatio = uploadSpeed > 0 ? (downloadSpeed / uploadSpeed).toFixed(1) : "0.0";
 
   return (
     <div className="space-y-4">
@@ -115,7 +123,7 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-neon-cyan">
-                {uploadSpeed > 0 ? (downloadSpeed / uploadSpeed).toFixed(1) : '0.0'}:1
+                {speedRatio}:1
               </div>
               <div className="text-xs text-muted-foreground">Down:Up</div>
             </div>
