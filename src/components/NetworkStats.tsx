@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Wifi, Signal, Timer, Zap } from 'lucide-react';
 
@@ -9,13 +9,57 @@ interface NetworkStatsProps {
   uploadSpeed: number;
 }
 
+interface ConnectionInfo {
+  ip: string;
+  isp: string;
+  location: string;
+  type: 'WiFi' | 'Mobile' | 'Ethernet' | 'Unknown';
+}
+
 export const NetworkStats: React.FC<NetworkStatsProps> = ({ 
   ping, 
   jitter, 
   downloadSpeed, 
   uploadSpeed 
 }) => {
+  const [info, setInfo] = useState<ConnectionInfo>({
+    ip: '—',
+    isp: '—',
+    location: '—',
+    type: 'Unknown'
+  });
+
+  // Detect WiFi vs Mobile/Ethernet (basic heuristic)
+  const getConnectionType = () => {
+    if ((navigator as any)?.connection?.type) {
+      return (navigator as any).connection.type; // Chrome supports
+    }
+    return navigator.userAgent.includes('Mobile') ? 'Mobile' : 'WiFi';
+  };
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        setInfo({
+          ip: data.ip || '—',
+          isp: data.org || 'Auto-detected',
+          location: data.city && data.country_name 
+            ? `${data.city}, ${data.country_name}` 
+            : '—',
+          type: getConnectionType()
+        });
+      } catch (err) {
+        console.error('Failed to fetch connection info', err);
+      }
+    };
+
+    fetchInfo();
+  }, []);
+
   const getPingQuality = (ping: number) => {
+    if (ping <= 0) return { label: '—', color: 'text-muted-foreground' };
     if (ping < 20) return { label: 'Excellent', color: 'text-neon-green' };
     if (ping < 50) return { label: 'Good', color: 'text-neon-cyan' };
     if (ping < 100) return { label: 'Fair', color: 'text-neon-orange' };
@@ -26,7 +70,8 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
 
   return (
     <div className="space-y-4">
-      <Card className="p-4 bg-card/50 border-muted">
+      {/* Network Quality */}
+      <Card className="p-4 bg-card/50 border-muted backdrop-blur-sm">
         <h3 className="text-lg font-semibold text-neon-cyan mb-4">Network Quality</h3>
         
         <div className="space-y-4">
@@ -37,8 +82,8 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
               <span className="text-sm">Latency</span>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold text-neon-purple">
-                {ping.toFixed(0)} ms
+              <div className={`text-lg font-bold ${pingQuality.color}`}>
+                {ping > 0 ? `${ping.toFixed(0)} ms` : '—'}
               </div>
               <div className={`text-xs ${pingQuality.color}`}>
                 {pingQuality.label}
@@ -54,10 +99,10 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-neon-orange">
-                {jitter.toFixed(1)} ms
+                {jitter > 0 ? `${jitter.toFixed(1)} ms` : '—'}
               </div>
               <div className="text-xs text-muted-foreground">
-                {jitter < 5 ? 'Stable' : 'Variable'}
+                {jitter > 0 ? (jitter < 5 ? 'Stable' : 'Variable') : '—'}
               </div>
             </div>
           </div>
@@ -72,35 +117,34 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({
               <div className="text-lg font-bold text-neon-cyan">
                 {uploadSpeed > 0 ? (downloadSpeed / uploadSpeed).toFixed(1) : '0.0'}:1
               </div>
-              <div className="text-xs text-muted-foreground">
-                Down:Up
-              </div>
+              <div className="text-xs text-muted-foreground">Down:Up</div>
             </div>
           </div>
         </div>
       </Card>
 
-      <Card className="p-4 bg-card/50 border-muted">
+      {/* Connection Info */}
+      <Card className="p-4 bg-card/50 border-muted backdrop-blur-sm">
         <h3 className="text-lg font-semibold text-neon-cyan mb-4">Connection Info</h3>
         
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Server</span>
-            <span className="text-sm">San Francisco, CA</span>
+            <span className="text-sm">{info.location}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">ISP</span>
-            <span className="text-sm">Auto-detected</span>
+            <span className="text-sm">{info.isp}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">IP</span>
-            <span className="text-sm">192.168.1.***</span>
+            <span className="text-sm">{info.ip}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Type</span>
             <div className="flex items-center space-x-1">
-              <Wifi className="w-3 h-3" />
-              <span className="text-sm">WiFi</span>
+              <Wifi className="w-3 h-3 text-neon-cyan" />
+              <span className="text-sm">{info.type}</span>
             </div>
           </div>
         </div>
