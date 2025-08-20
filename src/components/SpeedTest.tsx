@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Zap, Download, Upload, Wifi, Signal, Globe } from 'lucide-react';
+import { Zap, Download, Upload, Wifi, Signal, Globe, User, LogOut } from 'lucide-react';
 import { SpeedMeter } from './SpeedMeter';
 import { NetworkStats } from './NetworkStats';
 import { ConnectionGraph } from './ConnectionGraph';
+import { useAuth } from '@/hooks/useAuth';
+import { useSpeedTestResults } from '@/hooks/useSpeedTestResults';
+import { useToast } from '@/hooks/use-toast';
 
 export const SpeedTest = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -15,6 +19,18 @@ export const SpeedTest = () => {
   const [ping, setPing] = useState(0);
   const [jitter, setJitter] = useState(0);
   const [progress, setProgress] = useState(0);
+  
+  const { user, signOut } = useAuth();
+  const { saveTestResult, fetchTestResults, getStats } = useSpeedTestResults();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      fetchTestResults();
+    }
+  }, [user, fetchTestResults]);
+
+  const stats = getStats();
 
   const startTest = async () => {
     setIsRunning(true);
@@ -51,19 +67,76 @@ export const SpeedTest = () => {
 
     setPhase('complete');
     setIsRunning(false);
+
+    // Save test result if user is authenticated
+    if (user) {
+      await saveTestResult({
+        download_speed: downloadSpeed,
+        upload_speed: uploadSpeed,
+        ping: ping,
+        jitter: jitter,
+        server_location: 'San Francisco, CA',
+        connection_type: 'WiFi',
+        test_duration: 18 // approximate test duration
+      });
+    }
+  };
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Sign out failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="min-h-screen p-4 space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center space-x-3">
-          <Zap className="w-12 h-12 text-neon-cyan animate-pulse-neon" />
-          <h1 className="text-4xl font-bold neon-text">NeonSpeed</h1>
+      <div className="flex justify-between items-center">
+        <div className="text-center space-y-4 flex-1">
+          <div className="flex items-center justify-center space-x-3">
+            <Zap className="w-12 h-12 text-neon-cyan animate-pulse-neon" />
+            <h1 className="text-4xl font-bold neon-text">NeonSpeed</h1>
+          </div>
+          <p className="text-muted-foreground text-lg">
+            Ultra-fast network speed testing with real-time analytics
+          </p>
+          {stats && (
+            <div className="text-sm text-muted-foreground">
+              {stats.totalTests} tests completed • Avg: {stats.avgDownload.toFixed(1)} Mbps down
+            </div>
+          )}
         </div>
-        <p className="text-muted-foreground text-lg">
-          Ultra-fast network speed testing with real-time analytics
-        </p>
+        
+        {/* User Actions */}
+        <div className="flex items-center space-x-4">
+          {user ? (
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <div className="text-sm font-medium text-neon-cyan">
+                  {user.user_metadata?.display_name || user.email}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Signed in
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button variant="outline" size="sm" className="border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan/10">
+                <User className="w-4 h-4 mr-2" />
+                Sign In
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Main Test Area */}
