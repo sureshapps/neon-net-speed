@@ -32,55 +32,83 @@ export const SpeedTest = () => {
 
   const stats = getStats();
 
-  const startTest = async () => {
-    setIsRunning(true);
-    setProgress(0);
-    setDownloadSpeed(0);
-    setUploadSpeed(0);
-    setPing(0);
-    setJitter(0);
+ const startTest = async () => {
+  setIsRunning(true);
+  setPhase("idle");
+  setProgress(0);
 
-    // Phase 1: Ping test (3 seconds)
-    setPhase('ping');
-    for (let i = 0; i <= 100; i += 2) {
-      await new Promise(resolve => setTimeout(resolve, 30));
-      setProgress(i / 4); // 25% of total
-      setPing(Math.random() * 50 + 10);
-      setJitter(Math.random() * 5 + 1);
-    }
+  // reset results
+  setDownloadSpeed(0);
+  setUploadSpeed(0);
+  setPing(0);
+  setJitter(0);
 
-    // Phase 2: Download test (8 seconds)
-    setPhase('download');
-    for (let i = 0; i <= 100; i += 1) {
-      await new Promise(resolve => setTimeout(resolve, 80));
-      setProgress(25 + (i / 100) * 50); // 25% to 75%
-      setDownloadSpeed((Math.random() * 0.3 + 0.7) * (100 + Math.random() * 150));
-    }
+  const smoothUpdate = (setter: React.Dispatch<React.SetStateAction<number>>, target: number, duration: number) => {
+ 
 
-    // Phase 3: Upload test (7 seconds)
-    setPhase('upload');
-    for (let i = 0; i <= 100; i += 1) {
-      await new Promise(resolve => setTimeout(resolve, 70));
-      setProgress(75 + (i / 100) * 25); // 75% to 100%
-      setUploadSpeed((Math.random() * 0.3 + 0.7) * (50 + Math.random() * 100));
-    }
-
-    setPhase('complete');
-    setIsRunning(false);
-
-    // Save test result if user is authenticated
-    if (user) {
-      await saveTestResult({
-        download_speed: downloadSpeed,
-        upload_speed: uploadSpeed,
-        ping: ping,
-        jitter: jitter,
-        server_location: 'San Francisco, CA',
-        connection_type: 'WiFi',
-        test_duration: 18 // approximate test duration
+// animate values smoothly toward target
+    const steps = 30;
+    const increment = (target - Number(setter)) / steps;
+    let current = 0;
+    const interval = setInterval(() => {
+      setter(prev => {
+        current++;
+        return prev + increment;
       });
-    }
+      if (current >= steps) clearInterval(interval);
+    }, duration / steps);
   };
+
+  // Phase 1: Ping test (~3s)
+  setPhase("ping");
+  for (let i = 0; i <= 100; i += 5) {
+    await new Promise(resolve => setTimeout(resolve, 150)); // slower updates
+    setProgress((i / 100) * 25); // 0–25%
+    setPing(() => +(Math.random() * 20 + 10).toFixed(1));  // 10–30 ms
+    setJitter(() => +(Math.random() * 4 + 1).toFixed(1));  // 1–5 ms
+  }
+
+  // Phase 2: Download test (~8s)
+  setPhase("download");
+  for (let i = 0; i <= 100; i += 2) {
+    await new Promise(resolve => setTimeout(resolve, 80));
+    setProgress(25 + (i / 100) * 50); // 25–75%
+    setDownloadSpeed(() => {
+      // realistic smoothing: between 70–180 Mbps
+      const base = 70 + Math.random() * 110;
+      return +(base.toFixed(1));
+    });
+  }
+
+  // Phase 3: Upload test (~7s)
+  setPhase("upload");
+  for (let i = 0; i <= 100; i += 2) {
+    await new Promise(resolve => setTimeout(resolve, 70));
+    setProgress(75 + (i / 100) * 25); // 75–100%
+    setUploadSpeed(() => {
+      // realistic smoothing: between 20–80 Mbps
+      const base = 20 + Math.random() * 60;
+      return +(base.toFixed(1));
+    });
+  }
+
+  setPhase("complete");
+  setIsRunning(false);
+
+// Save test result if user is authenticated
+  if (user) {
+    const durationSec = Math.round((3 + 8 + 7)); // ~18s total
+    await saveTestResult({
+      download_speed: downloadSpeed,
+      upload_speed: uploadSpeed,
+      ping: ping,
+      jitter: jitter,
+      server_location: "San Francisco, CA",
+      connection_type: "WiFi",
+      test_duration: durationSec
+    });
+  }
+};
 
   const handleSignOut = async () => {
     const { error } = await signOut();
