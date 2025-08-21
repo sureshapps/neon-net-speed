@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#D9F7C7" />
+  <title>Privacy Policy</title>
+  <meta name="description" content="Privacy Policy for JOMSEARCH" />
+  <link rel="icon" href="https://jomsearch.netlify.app/favicon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .soft-card { background: white; border-radius: 1rem; box-shadow: 0 6px 20px rgba(16,24,40,.06); }
+    .pill { box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .section-grad { background: linear-gradient(180deg, rgba(217,247,199,.45) 0%, rgba(217,247,199,0) 60%); }
+    .icon-wrap { background: #D9F7C7; border-radius: 0.75rem; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+    .nav-link { color: #111827; opacity:.8; }
+    .nav-link:hover { opacity:1; }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 antialiased">
+  <header class="section-grad">
+ 
+  </header>
+  <main class="max-w-3xl mx-auto px-5 py-10">
+    
+<section class="soft-card p-6 md:p-8">
+  <div class="icon-wrap mb-4">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M12 3l7 4v5a9 9 0 11-14 0V7l7-4z" stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h1 class="text-3xl font-bold tracking-tight mb-2">Privacy Policy</h1>
+  <p class="text-slate-600 mb-6">This Privacy Policy explains how JOMSEARCH collects and uses information when you use our search engine and related services.</p>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">1) What we collect</h2>
+  <ul class="list-disc pl-6 space-y-2 text-slate-700">
+    <li><span class="font-medium">Search data:</span> your search queries and basic usage events (e.g., clicks on results) to improve relevance and quality.</li>
+    <li><span class="font-medium">Device & app data:</span> browser type, language, approximate location (from IP), and performance diagnostics.</li>
+    <li><span class="font-medium">Cookies/local storage:</span> small files used to remember preferences like theme, region, or recent searches.</li>
+    <li><span class="font-medium">Optional account data:</span> if you create an account, we store your email and settings. Accounts are optional.</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">2) How we use data</h2>
+  <ul class="list-disc pl-6 space-y-2 text-slate-700">
+    <li>Deliver search results and features like safe search, language, and region.</li>
+    <li>Measure performance and fix bugs.</li>
+    <li>Prevent abuse, spam, and security incidents.</li>
+    <li>Improve ranking, spelling correction, and result quality.</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">3) Analytics & third parties</h2>
+  <p class="text-slate-700">We may use privacy‑focused analytics and integrate with search APIs to fetch results. When you click a result, you leave JOMSEARCH and the destination website’s policies apply.</p>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">4) Ads</h2>
+  <p class="text-slate-700">If we display ads, they may be contextual (based on your query) rather than based on your identity. We do not sell personal information.</p>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">5) Data retention</h2>
+  <p class="text-slate-700">Search logs are kept for a limited period necessary for security and product improvement, then aggregated or deleted. Account data is kept until you delete your account.</p>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">6) Your choices</h2>
+  <ul class="list-disc pl-6 space-y-2 text-slate-700">
+    <li>Use JOMSEARCH without an account.</li>
+    <li>Adjust preferences (e.g., safe search, region).</li>
+    <li>Request export or deletion of account data by contacting us.</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">7) Children</h2>
+  <p class="text-slate-700">JOMSEARCH is not intended for children under 13. If you believe a child has provided personal data, contact us to delete it.</p>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">8) Changes</h2>
+  <p class="text-slate-700">We may update this Policy. Changes take effect when posted here. We will update the “Last updated” date below.</p>
+
+  <div class="mt-8 text-sm font-bold text-slate-600">Last updated: 2025-08-19</div></br>
+          <p class="text-sm">&copy; 2025 Suresh Kaleyannan. All rights reserved.</p>
+</section>
+
+  </main>
+ <center>
+<button
+  class="bg-white text-center w-48 rounded-2xl h-14 relative text-black text-xl font-semibold group"
+  type="button"
+>
+ <a href="https://jomsearch.netlify.app/">  <div
+    class="bg-green-400 rounded-xl h-12 w-1/4 flex items-center justify-center absolute left-1 top-[4px] group-hover:w-[184px] z-10 duration-500"
+  >
+<svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1024 1024"
+      height="25px"
+      width="25px"
+    >
+  <path
+        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+        fill="#000000"
+      ></path>
+   <path
+        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+        fill="#000000"
+      ></path>
+    </svg>
+  </div></a>
+                      <p class="translate-x-2">Go Back</p>
+</button>
+</center>
+
+</body>
+</br></br>
+</html>
